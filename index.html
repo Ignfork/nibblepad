@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NibblePad Agent — AI agent pad · $NIBBLE</title>
+<meta name="description" content="NibblePad Agent: six tiny critter agents that nibble on memes, build launch kits and read public market data. $NIBBLE on Solana.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect x='2' y='1' width='3' height='3' fill='%23e9a647'/%3E%3Crect x='11' y='1' width='3' height='3' fill='%23e9a647'/%3E%3Crect x='2' y='3' width='12' height='9' fill='%23f7c873'/%3E%3Crect x='4' y='6' width='2' height='2' fill='%23111'/%3E%3Crect x='10' y='6' width='2' height='2' fill='%23111'/%3E%3Crect x='7' y='8' width='2' height='1' fill='%23e86a8a'/%3E%3Crect x='3' y='9' width='3' height='2' fill='%23fff4dd'/%3E%3Crect x='10' y='9' width='3' height='2' fill='%23fff4dd'/%3E%3Crect x='4' y='12' width='8' height='3' fill='%23e9a647'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#ebe9e4; --ink:#0c0c0d; --muted:#66686a; --line:rgba(20,22,23,.15); --paper:#f6f4ee; --cream:#fcfaf5;
+  --acid:#c9f477; --dark:#18191b; --dark2:#232527;
+  --butter:#f3e6b8; --pink:#f6d6e2; --peach:#f5d9c6; --sky:#d3e4f3; --lilac:#e0d6f3; --mint:#d3eadc;
+  --c1:#ff5d8f; --c2:#ffb020; --c3:#3fb8ff; --c4:#8b5cf6; --c5:#2fcf7f; --c6:#ff7a3d;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace; --display:"Space Grotesk",Arial,sans-serif;
+  --r:16px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:400 14px/1.6 var(--mono);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer}
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+.px{image-rendering:pixelated;image-rendering:crisp-edges}
+
+/* header */
+header{position:sticky;top:0;z-index:40;background:rgba(235,233,228,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.nav{display:flex;align-items:center;gap:22px;height:62px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:13px;letter-spacing:.04em}
+.brand canvas{width:30px;height:30px}
+.nav .sp{flex:1}
+.links{display:flex;gap:20px;font-size:11.5px}
+.links a{position:relative}
+.links a::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:2px;background:var(--hc,var(--ink));transform:scaleX(0);transform-origin:left;transition:transform .25s}
+.links a:hover::after{transform:scaleX(1)}
+.navx{font-weight:600;font-size:11.5px;border-bottom:1.5px solid var(--ink);padding-bottom:1px}
+.burger{display:none;border:1px solid var(--ink);background:none;border-radius:5px;padding:6px 9px;font-size:12px}
+
+/* buttons */
+.b{display:inline-flex;align-items:center;gap:8px;border-radius:5px;padding:12px 18px;font:600 12px var(--mono);border:1px solid transparent;transition:transform .15s,box-shadow .15s,background .2s;white-space:nowrap}
+.b.dk{background:var(--ink);color:#e9e9e6;box-shadow:4px 4px 0 var(--sh,var(--c1))}
+.b.dk:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--sh,var(--c1))}
+.b.ln{border-color:var(--ink);background:transparent}
+.b.ln:hover{background:var(--ink);color:#fff}
+.b.ac{background:var(--acid);color:#111;border-color:#111}
+.b.ac:hover{filter:brightness(1.05);transform:translateY(-1px)}
+.b:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.ul{font-weight:500;font-size:12px;border-bottom:1.5px solid currentColor}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.05fr 1fr;align-items:center;min-height:calc(100vh - 62px);padding:20px 0 30px;position:relative}
+.ptitle{display:block;width:100%;max-width:640px;height:auto}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.hero p.lead{max-width:470px;font-size:14px;margin:40px 0 30px}
+.hrow{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.meta{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;margin-top:32px;letter-spacing:.04em}
+.meta span{display:inline-flex;align-items:center;gap:8px}
+.meta i{width:7px;height:7px;display:inline-block}
+.stage{position:relative;aspect-ratio:1/1;width:100%;max-width:600px;justify-self:end;cursor:pointer}
+.stage canvas{width:100%;height:100%;display:block}
+.bubble{position:absolute;left:42%;top:9%;background:#fff;border:1.5px solid var(--ink);padding:8px 14px;font-size:12.5px;white-space:nowrap;box-shadow:4px 4px 0 var(--c2);transition:transform .2s}
+.bubble::after{content:"";position:absolute;left:14px;bottom:-9px;width:14px;height:14px;background:#fff;border-left:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);transform:skewY(-40deg)}
+.caret{display:inline-block;width:8px;height:13px;background:var(--ink);vertical-align:-2px;margin-left:3px;animation:bl 1s steps(2) infinite}
+@keyframes bl{50%{opacity:0}}
+
+/* marquee */
+.marq{background:var(--dark);color:#e9e9e6;overflow:hidden;white-space:nowrap;border-top:1px solid #000;border-bottom:1px solid #000}
+.marq .t{display:inline-flex;gap:40px;padding:12px 0;animation:mq 34s linear infinite;font-size:11.5px;letter-spacing:.12em;font-weight:600}
+.marq:hover .t{animation-play-state:paused}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+/* sections */
+section.s{padding:110px 0 30px}
+.kick{font-size:11px;letter-spacing:.08em;display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.kick i{width:9px;height:9px;transform:rotate(45deg);display:inline-block;background:var(--ink)}
+h2{font:700 clamp(40px,5vw,62px)/.98 var(--display);letter-spacing:-.04em;margin:0}
+.shead{display:grid;grid-template-columns:1fr 1fr;align-items:end;gap:30px}
+.shead p{color:var(--muted);font-size:13px;max-width:380px;justify-self:end;margin:0}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin:34px 0 18px;align-items:center}
+.pill{border:1px solid rgba(20,20,20,.2);background:transparent;border-radius:50px;padding:7px 14px;font-size:11px}
+.pill.on{background:var(--ink);color:#fff}
+.pill:hover:not(.on){border-color:var(--ink)}
+.count{margin-left:auto;font-size:10px;letter-spacing:.08em}
+
+/* crew */
+.crew{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.cc{position:relative;border-radius:12px;border:1px solid rgba(0,0,0,.11);padding:16px;text-align:left;background:var(--t);overflow:hidden;min-height:330px;display:flex;flex-direction:column;transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s}
+.cc:hover{transform:translateY(-4px);box-shadow:0 18px 40px -18px var(--a)}
+.cc .top{display:flex;justify-content:space-between;font-size:10px;letter-spacing:.06em}
+.cc .top b{font-weight:400;display:flex;align-items:center;gap:6px}
+.cc .top b::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--a)}
+.cc .pet{flex:1;position:relative;display:grid;place-items:center}
+.cc .pet::before{content:"";position:absolute;width:76%;aspect-ratio:1;border-radius:50%;border:1px dashed rgba(0,0,0,.14)}
+.cc .pet::after{content:"+";position:absolute;right:6%;top:50%;font-size:18px;color:rgba(0,0,0,.3)}
+.cc canvas{width:170px;height:170px;position:relative}
+.cc .nm{font:700 34px/1 var(--display);letter-spacing:-.04em;color:var(--ink)}
+.cc .foot{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-top:8px}
+.cc .foot p{margin:0;font-size:11px;max-width:200px}
+.arrow{width:30px;height:30px;border-radius:50%;border:1px solid #333;display:grid;place-items:center;font-size:15px;flex:none;transition:transform .25s,background .2s}
+.cc:hover .arrow{transform:rotate(45deg);background:var(--a);color:#fff;border-color:var(--a)}
+.cc .stripe{position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--a)}
+
+/* desk */
+.dark{background:var(--dark);color:#e9e9e6;padding:100px 0 60px;margin-top:100px}
+.dark .shead p{color:#9a9c9e}
+.dark h2{color:#f4f3ef}
+.desk{display:grid;grid-template-columns:200px 1fr 1.15fr;border:1px solid #333;border-radius:14px;overflow:hidden;margin-top:40px;min-height:520px;background:#1c1d1f}
+.ops{border-right:1px solid #333;padding:14px 10px;display:flex;flex-direction:column;gap:6px}
+.ops h5{font-size:10.5px;letter-spacing:.08em;margin:2px 6px 8px;color:#9a9c9e;font-weight:500}
+.op{display:flex;align-items:center;gap:10px;border:1px solid transparent;border-radius:8px;background:transparent;padding:6px 8px;text-align:left;color:#ddd}
+.op canvas{width:30px;height:30px;background:#2a2c2e;border-radius:6px}
+.op b{display:block;font-size:12px;font-weight:600}
+.op small{font-size:10px;color:#8b8d90}
+.op:hover{background:#26282a}
+.op.on{background:color-mix(in srgb,var(--a) 22%,#1c1d1f);border-color:var(--a)}
+.spec{border-right:1px solid #333;padding:16px 18px;position:relative;display:flex;flex-direction:column;background:radial-gradient(circle at 50% 45%,#2a2c2f,#1c1d1f 70%)}
+.spec .hd{display:flex;justify-content:space-between;font-size:10.5px;color:#9a9c9e;letter-spacing:.06em}
+.spec canvas{flex:1;width:100%;min-height:300px;display:block}
+.spec .nm{font:700 40px/1 var(--display);letter-spacing:-.04em;color:#fff}
+.spec .ft{display:flex;justify-content:space-between;align-items:flex-end}
+.spec .tg{font-size:10.5px;color:var(--a);text-align:right;letter-spacing:.05em}
+.chat{display:flex;flex-direction:column;min-width:0}
+.chat .hd{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #333}
+.chat .hd b{font:600 17px var(--display)}
+.badge{font-size:10px;letter-spacing:.06em;border:1px solid var(--acid);color:var(--acid);border-radius:5px;padding:4px 8px}
+.log{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;max-height:390px;min-height:250px}
+.msg{max-width:92%;font-size:12.5px;line-height:1.55}
+.msg .who{font-size:9.5px;letter-spacing:.08em;color:#8b8d90;margin-bottom:4px}
+.msg .bx{background:#2a2c2e;border:1px solid #3a3c3f;border-radius:8px;padding:10px 12px;white-space:pre-wrap;word-wrap:break-word}
+.msg.me{align-self:flex-end}
+.msg.me .bx{background:var(--a);color:#111;border-color:transparent}
+.msg.me .who{text-align:right}
+.sw{display:inline-flex;gap:4px;vertical-align:middle}
+.sw i{width:18px;height:18px;border-radius:4px;display:inline-block;border:1px solid rgba(255,255,255,.2)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 12px}
+.chip{border:1px solid #4a4c4f;background:transparent;color:#ddd;border-radius:50px;padding:6px 11px;font-size:10.5px}
+.chip:hover{border-color:var(--a);color:#fff}
+.ask{display:flex;gap:8px;padding:12px 16px;border-top:1px solid #333}
+.ask input{flex:1;min-width:0;background:#26282a;border:1px solid #3a3c3f;border-radius:8px;color:#fff;padding:12px;font:12.5px var(--mono);outline:none}
+.ask input:focus{border-color:var(--a)}
+.ask button{width:46px;border:0;border-radius:8px;background:var(--acid);color:#111;font-size:18px}
+.fine{font-size:10.5px;color:#8b8d90;margin-top:14px;max-width:820px}
+
+/* launch */
+.launch{display:grid;grid-template-columns:.9fr 1.1fr;gap:40px;margin-top:10px}
+.lsteps{display:flex;flex-direction:column;gap:0;margin-top:30px}
+.lst{display:grid;grid-template-columns:44px 1fr;padding:16px 0;border-top:1px solid var(--line)}
+.lst b{font:700 15px var(--display)}
+.lst span{font-size:11.5px;color:var(--muted)}
+.lst .n{font-size:11px;color:var(--muted)}
+.editor{background:var(--cream);border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:0 20px 65px rgba(20,20,20,.08)}
+.editor .eh{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.editor .eh b{font:700 20px var(--display)}
+.lab{font-size:10.5px;letter-spacing:.06em;margin:14px 0 6px;display:block}
+.tpls{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tpl{border:1px solid var(--line);border-radius:8px;background:#fff;padding:6px 8px;display:flex;align-items:center;gap:8px;font-size:10.5px;text-align:left}
+.tpl canvas{width:28px;height:28px}
+.tpl.on{border-color:var(--ink);background:var(--t);box-shadow:3px 3px 0 var(--a)}
+.fi{width:100%;background:#fff;border:1px solid var(--line);border-radius:8px;padding:11px 12px;font:13px var(--mono);color:var(--ink);outline:none}
+.fi:focus{border-color:var(--ink)}
+textarea.fi{resize:vertical;min-height:84px}
+.two{display:grid;grid-template-columns:1.4fr 1fr;gap:10px}
+.cnt{font-size:10.5px;color:var(--muted);text-align:right}
+.drop{border:1.5px dashed rgba(0,0,0,.25);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--muted);cursor:pointer;background:#fff}
+.drop:hover{border-color:var(--ink)}
+.prev{margin-top:16px;border-radius:12px;padding:14px;display:flex;gap:14px;align-items:center;background:var(--t);border:1px solid rgba(0,0,0,.1)}
+.prev .im{width:84px;height:84px;border-radius:10px;background:#fff;display:grid;place-items:center;overflow:hidden;flex:none;border:1px solid rgba(0,0,0,.1)}
+.prev .im img,.prev .im canvas{width:100%;height:100%;object-fit:cover}
+.prev h4{margin:0;font:700 20px var(--display);word-break:break-word}
+.prev .tk{font-size:11px;letter-spacing:.06em}
+.prev p{margin:6px 0 0;font-size:11.5px;color:#333;word-break:break-word}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.note{font-size:10.5px;color:var(--muted);margin-top:12px}
+.err{color:#d9364f}
+
+/* market */
+.mw{display:grid;grid-template-columns:1fr;gap:16px;margin-top:36px}
+.sbar{display:flex;gap:8px;flex-wrap:wrap}
+.sbar input{flex:1;min-width:200px;background:#fff;border:1px solid var(--ink);border-radius:5px;padding:13px 14px;font:13px var(--mono);outline:none}
+.qq{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.panel{background:var(--cream);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.panel .ph{display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line);font-size:10.5px;letter-spacing:.08em}
+.empty{padding:50px 20px;text-align:center}
+.empty b{font:700 24px var(--display);display:block;margin-bottom:6px}
+.empty span{color:var(--muted);font-size:12px}
+.rows{display:flex;flex-direction:column}
+.pr{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 90px;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);font-size:12px}
+.pr:last-child{border-bottom:0}
+.pr .tkn{display:flex;align-items:center;gap:10px;min-width:0}
+.pr .tkn img,.pr .tkn .ph2{width:30px;height:30px;border-radius:50%;flex:none;background:var(--t,#ddd);object-fit:cover}
+.pr .tkn b{display:block;font-size:13px}
+.pr .tkn small{color:var(--muted);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pr .k{font-size:9.5px;color:var(--muted);letter-spacing:.06em;display:block}
+.up{color:#15924f}.dn{color:#d9364f}
+.pr a.go{font-size:11px;border:1px solid var(--ink);border-radius:5px;padding:6px 8px;text-align:center}
+.pr a.go:hover{background:var(--ink);color:#fff}
+
+/* how */
+.how{display:grid;grid-template-columns:1fr 2fr;gap:40px;align-items:start}
+.how .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.hc{border-radius:14px;padding:20px;min-height:280px;display:flex;flex-direction:column;background:var(--t);border:1px solid rgba(0,0,0,.1);position:relative;overflow:hidden}
+.hc .k2{font-size:10.5px;letter-spacing:.08em}
+.hc h3{font:700 30px/1 var(--display);letter-spacing:-.03em;margin:auto 0 12px}
+.hc p{font-size:11.5px;margin:0}
+.hc canvas{position:absolute;right:-6px;top:30px;width:110px;height:110px;opacity:.95}
+
+footer{border-top:1px solid var(--line);padding:30px 0 60px;margin-top:100px}
+.ft{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.ft .sp{flex:1}
+.disc{font-size:10.5px;color:var(--muted);margin-top:18px;max-width:900px}
+
+.paw{position:fixed;right:18px;bottom:18px;z-index:45;display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--ink);border-radius:50px;padding:6px 16px 6px 6px;font-size:10.5px;letter-spacing:.05em;font-weight:600;box-shadow:4px 4px 0 var(--c4);transition:transform .2s}
+.paw:hover{transform:translateY(-2px)}
+.paw canvas{width:38px;height:38px;border-radius:50%;background:var(--butter)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;z-index:80;background:var(--ink);color:#fff;border-radius:6px;padding:10px 16px;font-size:12px;transition:.3s;pointer-events:none;max-width:calc(100% - 32px);text-align:center;box-shadow:4px 4px 0 var(--c3)}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+.rv{opacity:0;transform:translateY(22px);transition:opacity .8s,transform .8s cubic-bezier(.2,.8,.2,1)}
+.rv.in{opacity:1;transform:none}
+
+@media (max-width:1060px){
+  .links{display:none}
+  .burger{display:inline-block}
+  .links.open{display:flex;position:absolute;top:62px;left:0;right:0;flex-direction:column;background:var(--bg);padding:14px 28px 20px;gap:14px;border-bottom:1px solid var(--line);font-size:13px}
+  .hero{grid-template-columns:1fr;min-height:auto;gap:10px}
+  .stage{justify-self:center;max-width:460px;order:-1}
+  .crew{grid-template-columns:repeat(2,1fr)}
+  .desk{grid-template-columns:1fr}
+  .ops{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid #333}
+  .ops h5{display:none}
+  .op{flex:none}
+  .spec{border-right:0;border-bottom:1px solid #333}
+  .spec canvas{min-height:240px;max-height:300px}
+  .launch,.how{grid-template-columns:1fr}
+  .shead{grid-template-columns:1fr}
+  .shead p{justify-self:start}
+}
+@media (max-width:640px){
+  .wrap{padding:0 16px}
+  .crew{grid-template-columns:1fr}
+  .how .cards{grid-template-columns:1fr}
+  .tpls{grid-template-columns:repeat(2,1fr)}
+  .two{grid-template-columns:1fr}
+  .pr{grid-template-columns:1fr 1fr;row-gap:6px}
+  .pr .tkn{grid-column:1/-1}
+  .navx{font-size:10.5px}
+  .paw span{display:none}
+  .paw{padding:6px}
+  .bubble{left:30%}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top"><canvas class="px" width="24" height="24" data-crit="nibs" data-face="1"></canvas>NIBBLEPAD</a>
+    <span class="sp"></span>
+    <nav class="links" id="links">
+      <a href="#crew" style="--hc:var(--c1)">The Crew</a><a href="#desk" style="--hc:var(--c2)">Agent Desk</a><a href="#launch" style="--hc:var(--c3)">Launch Pad</a><a href="#market" style="--hc:var(--c5)">Market Watch</a><a href="#how" style="--hc:var(--c4)">How It Works</a>
+    </nav>
+    <a class="navx" id="xNav" href="https://x.com/NibblePad" target="_blank" rel="noopener noreferrer">@NibblePad ↗</a>
+    <button class="burger" type="button" id="burger" aria-label="Menu">☰</button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="wrap hero">
+    <div>
+      <h1 class="vh">NibblePad AI Agent Pad</h1>
+      <canvas class="ptitle px" id="ptitle" aria-hidden="true"></canvas>
+      <p class="lead">NibblePad watches the meme world, nibbles on the good ideas, and wakes up six tiny agents to scout, write, brand and launch. Powered by snacks. Fueled by $NIBBLE.</p>
+      <div class="hrow">
+        <a class="b dk" href="#crew" style="--sh:var(--c1)">Explore agents ↗</a>
+        <a class="ul" href="#desk">Watch Nibs think ›</a>
+        <a class="ul" id="xHero" href="https://x.com/NibblePad" target="_blank" rel="noopener noreferrer" style="font-weight:600">Follow @NibblePad ↗</a>
+      </div>
+      <div class="meta">
+        <span><i style="background:var(--c1)"></i>06 CRITTER AGENTS</span>
+        <span><i style="background:var(--c2)"></i>01 LAUNCH PAD</span>
+        <span><i style="background:var(--c3)"></i>PUBLIC MARKET DATA</span>
+        <span><i style="background:var(--c5)"></i>$NIBBLE</span>
+      </div>
+    </div>
+    <div class="stage" id="stage" title="Feed Nibs">
+      <canvas id="heroC" width="720" height="720" aria-label="Nibs the hamster agent, a 3D pixel critter"></canvas>
+      <div class="bubble" id="bubble"><span id="bubT"></span><span class="caret"></span></div>
+    </div>
+  </section>
+
+  <div class="marq" aria-hidden="true"><div class="t" id="marq"></div></div>
+
+  <!-- CREW -->
+  <section class="s wrap" id="crew">
+    <div class="shead rv">
+      <div><div class="kick"><i style="background:var(--c1)"></i>THE BURROW / 006</div><h2>Meet your<br>little nibblers.</h2></div>
+      <p>Not another wall of identical bots. Six critters with distinct jobs, moods and snack preferences. Pick one and put it to work in the Agent Desk.</p>
+    </div>
+    <div class="pills rv" id="filters">
+      <button class="pill on" type="button" data-f="all">All agents</button>
+      <button class="pill" type="button" data-f="creative">Creative</button>
+      <button class="pill" type="button" data-f="research">Research</button>
+      <button class="pill" type="button" data-f="launch">Launch tools</button>
+      <span class="count" id="count">SHOWING 06 / 06</span>
+    </div>
+    <div class="crew" id="crewGrid"></div>
+  </section>
+
+  <!-- DESK -->
+  <section class="dark" id="desk">
+    <div class="wrap">
+      <div class="shead rv">
+        <div><div class="kick" style="color:#9a9c9e"><i style="background:var(--acid)"></i>AGENT DESK / INTERACTIVE</div><h2>A snack for<br>every mission.</h2></div>
+        <p>Talk to the crew and try their ideas right in your browser. Names, hooks, lore, palettes, launch plans and checklists. No wallet or purchase needed to play.</p>
+      </div>
+      <div class="desk rv">
+        <div class="ops" id="ops"><h5>CHOOSE YOUR CRITTER</h5></div>
+        <div class="spec">
+          <div class="hd"><span id="specNo">SPECIMEN / 01</span><span>MOVE YOUR MOUSE ↔</span></div>
+          <canvas id="specC" width="560" height="560"></canvas>
+          <div class="ft"><div><div class="nm" id="specNm">NIBS</div><div style="font-size:11px;color:#9a9c9e" id="specRole">Meme Scout</div></div><div class="tg" id="specTg">● ANIMATED + INTERACTIVE<br>CREATIVE</div></div>
+        </div>
+        <div class="chat">
+          <div class="hd"><b id="deskTitle">Nibs's desk ↗</b><span class="badge">LOCAL TOOLS</span></div>
+          <div class="log" id="log" aria-live="polite"></div>
+          <div class="chips" id="chips"></div>
+          <form class="ask" id="askF"><input id="askIn" placeholder="Give this critter a concept…" autocomplete="off" aria-label="Message"><button type="submit" aria-label="Send">↗</button></form>
+        </div>
+      </div>
+      <p class="fine">The Agent Desk runs browser-side creative tools built into this page. It isn't a paid AI model, and it never makes trades or wallet transactions.</p>
+    </div>
+  </section>
+
+  <!-- LAUNCH -->
+  <section class="s wrap" id="launch">
+    <div class="launch">
+      <div class="rv">
+        <div class="kick"><i style="background:var(--c3)"></i>LAUNCH PAD / SOLANA</div>
+        <h2>From one<br>nibble to a<br>full launch.</h2>
+        <p style="color:var(--muted);font-size:13px;max-width:420px;margin-top:20px">Build a proper launch kit before your token hits the timeline. Pick a critter, write a name, ticker and story, save the draft, download your kit, and continue at Pump.fun to publish onchain.</p>
+        <div class="lsteps">
+          <div class="lst"><span class="n">01</span><div><b>Pick a critter personality</b><br><span>Hamster, bunny, squirrel, mouse, raccoon or beaver</span></div></div>
+          <div class="lst"><span class="n">02</span><div><b>Write the token story</b><br><span>Keep it original, keep it snackable</span></div></div>
+          <div class="lst"><span class="n">03</span><div><b>Prepare and continue</b><br><span>The actual mint happens on Pump.fun</span></div></div>
+        </div>
+      </div>
+      <div class="editor rv" id="editor">
+        <div class="eh"><b>New critter launch</b><span class="tg" style="font-size:10px;letter-spacing:.08em">DRAFT EDITOR</span></div>
+        <span class="lab">01 / SELECT A TEMPLATE</span>
+        <div class="tpls" id="tpls"></div>
+        <div class="two">
+          <div><label class="lab" for="lName">02 / TOKEN NAME *</label><input class="fi" id="lName" maxlength="32" placeholder="Snack Overflow"></div>
+          <div><label class="lab" for="lTick">03 / TICKER *</label><input class="fi" id="lTick" maxlength="10" placeholder="$SNACK"></div>
+        </div>
+        <label class="lab" for="lStory">04 / TOKEN STORY *</label>
+        <textarea class="fi" id="lStory" maxlength="280" placeholder="A short, original description works best."></textarea>
+        <div class="cnt"><span id="lCnt">0</span>/280</div>
+        <label class="lab" for="lX">05 / X PROFILE (OPTIONAL)</label>
+        <input class="fi" id="lX" placeholder="https://x.com/yourcoin">
+        <label class="drop" style="margin-top:12px"><input type="file" id="lImg" accept="image/png,image/jpeg,image/webp" hidden><span style="font-size:20px">＋</span><span>Add a token image (optional)<br>PNG / JPG / WebP · stays in this browser only</span></label>
+        <div class="prev" id="prev"><div class="im" id="prevIm"></div><div style="min-width:0"><h4 id="pName">Your token name</h4><div class="tk" id="pTick">$TICKER · HAMSTER AGENT</div><p id="pStory">Your story will appear here as you type.</p></div></div>
+        <div class="acts">
+          <button class="b ln" type="button" id="saveD">Save draft ↗</button>
+          <button class="b ln" type="button" id="dlKit">Download launch kit ↓</button>
+          <button class="b ln" type="button" id="phantom">Connect Phantom</button>
+          <button class="b dk" type="button" id="toPump" style="--sh:var(--c5)">Continue to Pump.fun ↗</button>
+        </div>
+        <div class="note" id="lMsg">This pad prepares your metadata. It does not create a token or charge a fee. To mint, review everything and complete the transaction yourself on Pump.fun.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARKET -->
+  <section class="s wrap" id="market">
+    <div class="shead rv">
+      <div><div class="kick"><i style="background:var(--c5)"></i>MARKET WATCH / PUBLIC DATA</div><h2>Sniff the signal.<br>Check the source.</h2></div>
+      <p>Look up public Solana token pairs with live data from DEX Screener. No made-up prices, no invisible trades, no promises.</p>
+    </div>
+    <div class="mw rv">
+      <div>
+        <form class="sbar" id="mF"><input id="mQ" placeholder="Search a token name, ticker or paste a Solana mint…" autocomplete="off" aria-label="Search tokens"><button class="b dk" type="submit" style="--sh:var(--c5)">Search ↗</button></form>
+        <div class="qq" id="qq"></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><span>PUBLIC TOKEN PAIRS</span><span id="mState">WAITING FOR SEARCH</span></div>
+        <div id="mOut"><div class="empty"><b>Nothing invented here.</b><span>Search a token or paste its Solana mint address to load current public market data.</span></div></div>
+      </div>
+      <div class="note">Data: DEX Screener API. Research only, not financial advice.</div>
+    </div>
+  </section>
+
+  <!-- HOW -->
+  <section class="s wrap" id="how">
+    <div class="how">
+      <div class="rv"><div class="kick"><i style="background:var(--c4)"></i>THE NIBBLE WAY</div><h2>Not just<br>another<br>mascot.</h2><p style="color:var(--muted);font-size:13px;margin-top:18px">Make the critter useful before you ask the internet to believe the story.</p></div>
+      <div class="cards">
+        <div class="hc rv" style="--t:var(--butter)"><canvas class="px" width="24" height="24" data-crit="nibs"></canvas><span class="k2">01 / PLAY</span><h3>Pick your<br>critter.</h3><p>Six personalities: meme scouting, community words, launch plans, market watching, branding and checklists.</p></div>
+        <div class="hc rv" style="--t:var(--lilac)"><canvas class="px" width="24" height="24" data-crit="bandit"></canvas><span class="k2">02 / BUILD</span><h3>Give it<br>a mission.</h3><p>Turn an idea into a token identity and a launch kit with browser-side creative tools.</p></div>
+        <div class="hc rv" style="--t:var(--mint)"><canvas class="px" width="24" height="24" data-crit="gnaw"></canvas><span class="k2">03 / VERIFY</span><h3>Keep it<br>real.</h3><p>Read live public token data and choose exactly when to continue to a separate onchain launch.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="ft"><a class="brand" href="#top"><canvas class="px" width="24" height="24" data-crit="nibs" data-face="1"></canvas>NIBBLEPAD AGENT</a><span class="sp"></span><a class="ul" href="#crew">The Crew</a><a class="ul" href="#desk">Agent Desk</a><a class="ul" href="#launch">Launch Pad</a><a class="ul" href="#market">Market Watch</a><a class="ul" id="xFoot" href="https://x.com/NibblePad" target="_blank" rel="noopener noreferrer" style="font-weight:600">Follow @NibblePad ↗</a></div>
+    <p class="disc">NibblePad Agent ($NIBBLE) is a creative playground. Agent Desk replies come from tools built into this page. The Launch Pad only prepares metadata; minting happens on Pump.fun, where you sign your own transaction. Market data comes from the public DEX Screener API. The official $NIBBLE contract address is posted only on X @NibblePad. Nothing here is financial advice. Never connect a wallet to a site you don't trust.</p>
+  </div>
+</footer>
+
+<a class="paw" href="#desk"><canvas class="px" width="24" height="24" data-crit="nibs" data-face="1"></canvas><span>NEED A NIBBLE?<br>OPEN AGENT DESK ↗</span></a>
+<div id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+/* ================= CONFIG — edit these ================= */
+var CONFIG = {
+  xUrl:    'https://x.com/NibblePad',
+  mint:    '',                         // $NIBBLE mint (optional): adds a $NIBBLE quick-search in Market Watch
+  pumpUrl: 'https://pump.fun/create'   // where "Continue to Pump.fun" goes
+};
+/* ====================================================== */
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+function store(k,v){try{if(v===undefined)return localStorage.getItem('nib_'+k);localStorage.setItem('nib_'+k,v)}catch(e){return null}}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+var tt;function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){t.classList.remove('show')},3200)}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function shade(hex,f){var n=parseInt(hex.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255;r=Math.round(r*f);g=Math.round(g*f);b=Math.round(b*f);return 'rgb('+Math.min(255,r)+','+Math.min(255,g)+','+Math.min(255,b)+')'}
+
+/* ================= CRITTERS ================= */
+var CR={
+  nibs:{name:'NIBS',kind:'Hamster',role:'Meme Scout',tag:'Find the snack-sized weird.',cat:'creative',label:'CREATIVE',t:'var(--butter)',a:'#e0a526',fur:['#ffd68a','#f3b45a','#c27f2e'],belly:'#fff4dd',ears:'round',cheeks:1,tail:'none',inner:'#f4a6a6',item:'seed',nose:'#e86a8a'},
+  thump:{name:'THUMP',kind:'Bunny',role:'Community Bard',tag:'Words with a little hop.',cat:'creative',label:'COMMUNITY',t:'var(--pink)',a:'#e0568a',fur:['#ffffff','#efe8ec','#c9bfc6'],belly:'#ffffff',ears:'long',tail:'cotton',teeth:1,inner:'#f6a5c0',item:'quill',nose:'#f07aa0'},
+  acorn:{name:'ACORN',kind:'Squirrel',role:'Launch Strategist',tag:'Stash now, plan later.',cat:'launch',label:'LAUNCH',t:'var(--peach)',a:'#e2672b',fur:['#ffaf6b','#e27b37','#a5501e'],belly:'#ffe7cf',ears:'tuft',tail:'bushy',item:'flag',nose:'#5a2e17'},
+  squeak:{name:'SQUEAK',kind:'Mouse',role:'Market Observer',tag:'Whiskers on the public data.',cat:'research',label:'RESEARCH',t:'var(--sky)',a:'#2f7fd1',fur:['#dfe2ea','#b3b8c6','#7a8091'],belly:'#f2f4f8',ears:'big',tail:'thin',inner:'#f4b3c2',item:'chart',nose:'#f08aa5'},
+  bandit:{name:'BANDIT',kind:'Raccoon',role:'Brand Architect',tag:'Steals the spotlight, legally.',cat:'creative',label:'BRAND',t:'var(--lilac)',a:'#7b52d6',fur:['#c9c7d2','#9a98a6','#5f5d6b'],belly:'#ecebf1',ears:'pointy',mask:1,tail:'striped',item:'brush',nose:'#2b2a33'},
+  gnaw:{name:'GNAW',kind:'Beaver',role:'Launch Inspector',tag:'Chews through every detail.',cat:'launch',label:'CHECKLIST',t:'var(--mint)',a:'#2f9e62',fur:['#c48a5a','#9a653b','#664024'],belly:'#e8c9a4',ears:'small',teeth:1,tail:'flat',item:'clipboard',nose:'#3a2416'}
+};
+var CRK=Object.keys(CR);
+var N=24,SPR={};
+function buildCritter(id){
+  var D=CR[id],g={};function p(x,y,c){if(x<0||y<0||x>=N||y>=N)return;g[x+','+y]=c}
+  function ell(cx,cy,rx,ry,fn){for(var y=Math.floor(cy-ry);y<=Math.ceil(cy+ry);y++)for(var x=Math.floor(cx-rx);x<=Math.ceil(cx+rx);x++){var d=((x-cx)*(x-cx))/(rx*rx)+((y-cy)*(y-cy))/(ry*ry);if(d<=1)fn(x,y,d)}}
+  var F=D.fur;
+  // tail (behind)
+  if(D.tail==='bushy'){ell(19.5,12,3.6,5.2,function(x,y,d){if(x>=16)p(x,y,d>.6?F[2]:(y<11?F[0]:F[1]))});ell(19,18,2.6,3,function(x,y,d){if(x>=16)p(x,y,d>.6?F[2]:F[1])})}
+  if(D.tail==='striped'){for(var i=0;i<7;i++){var tx=17+i*0.9,ty=20-i*1.1;ell(tx,ty,1.3,1.3,function(x,y){p(x,y,i%2?'#3a3944':F[0])})}}
+  if(D.tail==='flat'){ell(19.5,21,3.8,1.6,function(x,y){p(x,y,(x+y)%2?'#4a3020':'#5c3c28')})}
+  if(D.tail==='thin'){[[17,21],[18,21],[19,20],[20,20],[21,19],[22,18],[22,17],[23,16]].forEach(function(q){p(q[0],q[1],D.inner)})}
+  // ears
+  if(D.ears==='round'){[[6,4.2],[18,4.2]].forEach(function(e){ell(e[0],e[1],2.4,2.4,function(x,y){p(x,y,F[1])});ell(e[0],e[1]+0.3,1.2,1.2,function(x,y){p(x,y,D.inner)})})}
+  if(D.ears==='big'){[[5,4.4],[19,4.4]].forEach(function(e){ell(e[0],e[1],3.4,3.4,function(x,y){p(x,y,F[1])});ell(e[0],e[1]+0.2,2.1,2.1,function(x,y){p(x,y,D.inner)})})}
+  if(D.ears==='small'){[[6.2,5],[17.8,5]].forEach(function(e){ell(e[0],e[1],1.6,1.6,function(x,y){p(x,y,F[2])})})}
+  if(D.ears==='long'){[[7,8],[15,16]].forEach(function(xr,k){for(var y=0;y<=5;y++)for(var x=xr[0];x<=xr[1];x++){p(x,y,x===(k?15:8)&&y>0&&y<5?D.inner:F[y<1?0:1])}})}
+  if(D.ears==='tuft'||D.ears==='pointy'){[[1,-1],[1,1]].forEach(function(s,k){for(var y=0;y<=5;y++){var w=Math.floor(y*0.7)+1;for(var i=0;i<w;i++){var x=k?17+i-Math.floor(w/2)+1:6+i-Math.floor(w/2);p(x,y+1,y<2&&D.ears==='tuft'?F[2]:(i>0&&i<w-1&&y>1?(D.ears==='pointy'?'#3a3944':D.inner||F[0]):F[1]))}}})}
+  // body
+  ell(12,18,6,4.6,function(x,y,d){p(x,y,d>.7&&(x>12||y>19)?F[2]:(x<9&&y<18?F[0]:F[1]))});
+  ell(12,19,3.4,2.8,function(x,y){p(x,y,D.belly)});
+  // head
+  ell(12,10,7.4,6,function(x,y,d){p(x,y,d>.72&&(x>12||y>11)?F[2]:(x<8&&y<10?F[0]:F[1]))});
+  if(D.cheeks){ell(7,12.4,2.6,2,function(x,y){p(x,y,D.belly)});ell(17,12.4,2.6,2,function(x,y){p(x,y,D.belly)})}
+  ell(12,12.6,3.2,2,function(x,y){p(x,y,D.belly)});
+  if(D.mask){for(var mx=6;mx<=18;mx++)for(var my=8;my<=10;my++){if(!(mx>=11&&mx<=12&&my===10))p(mx,my,'#34333d')}}
+  // arms + feet
+  [[7,16],[8,17],[17,16],[16,17]].forEach(function(q){p(q[0],q[1],F[2])});
+  [[8,22],[9,22],[10,22],[14,22],[15,22],[16,22]].forEach(function(q){p(q[0],q[1],F[2])});
+  if(D.tail==='cotton'){ell(18.5,20.2,1.6,1.6,function(x,y){p(x,y,'#ffffff')})}
+  // nose / teeth / mouth
+  p(11,11,D.nose);p(12,11,D.nose);
+  if(D.teeth){p(11,13,'#ffffff');p(12,13,'#ffffff')}else{p(10,12,shade(F[2],.8));p(13,12,shade(F[2],.8))}
+  // items
+  var it={seed:[[17,15,'#3a3530'],[18,15,'#f4efe2'],[17,16,'#f4efe2'],[18,16,'#3a3530'],[17,14,'#3a3530']],
+    quill:[[18,11,'#7ad1ff'],[18,12,'#7ad1ff'],[17,13,'#3fb8ff'],[17,14,'#3fb8ff'],[16,15,'#222']],
+    flag:[[18,11,'#333'],[18,12,'#333'],[18,13,'#333'],[18,14,'#333'],[18,15,'#333'],[19,11,'#ff5d8f'],[20,11,'#ff5d8f'],[19,12,'#ff5d8f'],[20,12,'#ffb020']],
+    chart:[[16,14,'#fff'],[17,14,'#fff'],[18,14,'#fff'],[19,14,'#fff'],[16,15,'#fff'],[17,15,'#2fcf7f'],[18,15,'#fff'],[19,15,'#2fcf7f'],[16,16,'#2fcf7f'],[17,16,'#2fcf7f'],[18,16,'#2fcf7f'],[19,16,'#2fcf7f']],
+    brush:[[17,12,'#ff5d8f'],[17,13,'#ffb020'],[17,14,'#8a6a4a'],[17,15,'#8a6a4a'],[17,16,'#8a6a4a']],
+    clipboard:[[16,13,'#c08a4a'],[17,13,'#888'],[18,13,'#c08a4a'],[16,14,'#fff'],[17,14,'#fff'],[18,14,'#fff'],[16,15,'#2fcf7f'],[17,15,'#fff'],[18,15,'#fff'],[16,16,'#fff'],[17,16,'#fff'],[18,16,'#fff']]};
+  (it[D.item]||[]).forEach(function(q){p(q[0],q[1],q[2])});
+  // outline
+  var out={};Object.keys(g).forEach(function(k){var xy=k.split(',').map(Number);[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(d){var nk=(xy[0]+d[0])+','+(xy[1]+d[1]);if(!g[nk])out[nk]=1})});
+  var px=[];Object.keys(out).forEach(function(k){var xy=k.split(',').map(Number);if(xy[0]>=0&&xy[1]>=0&&xy[0]<N&&xy[1]<N)px.push([xy[0],xy[1],'#1b1b1f',1])});
+  Object.keys(g).forEach(function(k){var xy=k.split(',').map(Number);px.push([xy[0],xy[1],g[k],0])});
+  return SPR[id]={px:px,D:D};
+}
+function spr(id){return SPR[id]||buildCritter(id)}
+/* draw voxel-style critter. o:{look:[-1..1],blink,bob,squash,depth} */
+function drawCritter(x,id,X,Y,s,o){
+  o=o||{};var S=spr(id),D=S.D,look=o.look||[0,0],dep=o.depth==null?0.35:o.depth,sq=o.squash||0;
+  var sx=s*(1+sq*0.08),sy=s*(1-sq*0.1),oy=Y+(o.bob||0)+sq*s*2.4;
+  var lx=Math.max(-1,Math.min(1,Math.round(look[0]*1.4))),ly=Math.max(-1,Math.min(1,Math.round(look[1]*1.2)));
+  // shadow
+  x.fillStyle='rgba(0,0,0,.14)';x.beginPath();x.ellipse(X+12*s,Y+23.6*s,9*s,1.6*s,0,0,Math.PI*2);x.fill();
+  if(dep>0){S.px.forEach(function(q){if(q[3])return;x.fillStyle=shade(q[2].charAt(0)==='#'?q[2]:'#888888',.62);x.fillRect(X+q[0]*sx+s*dep,oy+q[1]*sy+s*dep,Math.ceil(sx),Math.ceil(sy))})}
+  S.px.forEach(function(q){if(q[3]&&dep>0)return;x.fillStyle=q[2];x.fillRect(X+q[0]*sx,oy+q[1]*sy,Math.ceil(sx)+0.5,Math.ceil(sy)+0.5)});
+  if(!dep)S.px.forEach(function(q){if(q[3]){x.fillStyle=q[2];x.fillRect(X+q[0]*sx,oy+q[1]*sy,Math.ceil(sx),Math.ceil(sy))}});
+  // eyes (dynamic)
+  var eyes=[[8,8],[15,8]],bl=o.blink||0;
+  eyes.forEach(function(e){var ex=X+(e[0]+lx*0.5)*sx,ey=oy+(e[1]+ly*0.5)*sy;
+    if(bl>0.5){x.fillStyle='#111';x.fillRect(ex,ey+sy,2*sx,sy*0.7)}
+    else{x.fillStyle='#111';x.fillRect(ex,ey,2*sx,2*sy);x.fillStyle='#fff';x.fillRect(ex+(lx>0?sx:0),ey,sx*0.9,sy*0.9)}});
+  // blush
+  x.fillStyle='rgba(255,110,150,.45)';x.fillRect(X+5.6*sx,oy+11*sy,1.6*sx,0.8*sy);x.fillRect(X+16.8*sx,oy+11*sy,1.6*sx,0.8*sy);
+}
+function paintIcon(cv,id,face){var x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);x.imageSmoothingEnabled=false;var s=cv.width/24;if(face){var f=s*1.5;drawCritter(x,id,cv.width/2-12*f,-1.5*f,f,{depth:0});}else drawCritter(x,id,0,-0.5*s,s,{depth:0})}
+$$('canvas[data-crit]').forEach(function(c){paintIcon(c,c.getAttribute('data-crit'),c.getAttribute('data-face'))});
+
+/* ================= PIXEL TITLE ================= */
+var G={A:'01110,10001,10001,11111,10001,10001,10001',B:'11110,10001,10001,11110,10001,10001,11110',D:'11110,10001,10001,10001,10001,10001,11110',E:'11111,10000,10000,11110,10000,10000,11111',G:'01111,10000,10000,10111,10001,10001,01111',I:'11111,00100,00100,00100,00100,00100,11111',L:'10000,10000,10000,10000,10000,10000,11111',N:'10001,11001,10101,10011,10001,10001,10001',P:'11110,10001,10001,11110,10000,10000,10000',T:'11111,00100,00100,00100,00100,00100,00100',' ':'00000,00000,00000,00000,00000,00000,00000'};
+function drawTitle(t){var c=$('#ptitle'),lines=['NIBBLEPAD','AI AGENT PAD'],s=10,gap=2,adv=6*s;var W=12*adv,H=7*s*2+s*5;c.width=W;c.height=H;var x=c.getContext('2d');x.clearRect(0,0,W,H);
+  var cols=['#ff5d8f','#ffb020','#3fb8ff','#8b5cf6','#2fcf7f','#ff7a3d'];
+  lines.forEach(function(L,li){var oy=li*(7*s+s*5);for(var i=0;i<L.length;i++){var gl=(G[L[i]]||G[' ']).split(',');var wob=Math.sin(t*0.003+i*0.6+li)*1.2;
+    for(var r=0;r<7;r++)for(var k=0;k<5;k++){if(gl[r][k]!=='1')continue;var X=i*adv+k*s,Y=oy+r*s+(li===0?wob:0);
+      if(li===0){x.fillStyle=cols[(i+Math.floor(t/600))%6];x.fillRect(X+3,Y+3,s-1,s-1);x.fillStyle='#0c0c0d';x.fillRect(X,Y,s-1,s-1)}
+      else{x.fillStyle='#0c0c0d';x.fillRect(X+(k%2?0:0),Y,s-1,(r%2?s-3:s-1))}}}})}
+
+/* ================= HERO ================= */
+var hc=$('#heroC'),hx=hc.getContext('2d'),mouse=[0,0],nib=0,crumbs=[],nextBlink=1600,blinkAt=0,bubIdx=0,bubTxt=['Try a nibble','Feed me a meme','6 agents awake','$NIBBLE time','Click me, I crunch'];
+addEventListener('pointermove',function(e){mouse=[(e.clientX/innerWidth-0.5)*2,(e.clientY/innerHeight-0.5)*2]});
+$('#stage').addEventListener('click',function(){nib=1;for(var i=0;i<18;i++)crumbs.push({x:360+(Math.random()-0.5)*60,y:390,vx:(Math.random()-0.5)*8,vy:-3-Math.random()*5,l:60,c:pick(['#ffb020','#ff5d8f','#3fb8ff','#2fcf7f','#8b5cf6','#f3e6b8'])});typeBubble(pick(['crunch crunch','nom nom nom','more seeds pls','tasty alpha','*happy squeak*']))});
+function typeBubble(s){var el=$('#bubT'),i=0;clearInterval(typeBubble.iv);typeBubble.iv=setInterval(function(){el.textContent=s.slice(0,++i);if(i>=s.length)clearInterval(typeBubble.iv)},55)}
+typeBubble(bubTxt[0]);setInterval(function(){bubIdx=(bubIdx+1)%bubTxt.length;typeBubble(bubTxt[bubIdx])},4200);
+function heroTick(t){var W=hc.width,H=hc.height;hx.clearRect(0,0,W,H);hx.imageSmoothingEnabled=false;
+  // scan lines
+  for(var y=40;y<330;y+=9){var len=W*(0.45+0.35*Math.sin(y*0.07+t*0.0015));var a=0.08+0.12*(0.5+0.5*Math.sin(y*0.3+t*0.002));hx.fillStyle='rgba(12,12,13,'+a+')';hx.fillRect(W-len,y,len,3)}
+  var cols=['#ff5d8f','#ffb020','#3fb8ff','#8b5cf6','#2fcf7f'];for(var j=0;j<5;j++){var yy=120+j*42+Math.sin(t*0.002+j)*6,ln=80+Math.sin(t*0.003+j*2)*40;hx.fillStyle=cols[j];hx.fillRect(W-ln-20,yy,ln,4)}
+  // platform lines
+  for(var k=0;k<6;k++){hx.fillStyle='rgba(12,12,13,'+(0.12-k*0.015)+')';hx.fillRect(W*0.14+k*14,H*0.86+k*7,W*0.72-k*28,3)}
+  if(t>nextBlink){blinkAt=t;nextBlink=t+2400+Math.random()*2400}var bp=(t-blinkAt)/170,bl=bp>=0&&bp<1?1:0;
+  nib*=0.9;var s=22,bob=Math.sin(t*0.0026)*6;
+  drawCritter(hx,'nibs',W/2-12*s,H*0.08,s,{look:mouse,blink:bl,bob:bob,squash:Math.sin(nib*Math.PI)*nib,depth:0.4});
+  crumbs=crumbs.filter(function(c){c.x+=c.vx;c.y+=c.vy;c.vy+=0.3;c.l--;hx.fillStyle=c.c;hx.fillRect(Math.round(c.x),Math.round(c.y),10,10);return c.l>0});
+}
+
+/* ================= MARQUEE ================= */
+(function(){var items=[['✳ SIX TINY AGENTS','#fff'],['NIBBLE → PLAY → LAUNCH','#c9f477'],['HAMSTER / BUNNY / SQUIRREL / MORE','#ffb020'],['BUILT FOR MEMES','#3fb8ff'],['$NIBBLE','#ff5d8f'],['PUBLIC DATA ONLY','#2fcf7f'],['POWERED BY SNACKS','#c4a6ff']];var h='';for(var r=0;r<2;r++)items.forEach(function(i){h+='<span style="color:'+i[1]+'">'+i[0]+'</span>'});$('#marq').innerHTML=h})();
+
+/* ================= CREW ================= */
+var crewCanv=[];
+(function(){var g=$('#crewGrid');CRK.forEach(function(id,i){var D=CR[id];var b=document.createElement('button');b.type='button';b.className='cc rv';b.setAttribute('data-cat',D.cat);b.style.setProperty('--t',D.t);b.style.setProperty('--a',D.a);
+  b.innerHTML='<div class="top"><span>NP / 0'+(i+1)+'</span><b>'+D.label+'</b></div><div class="pet"><canvas class="px" width="340" height="340"></canvas></div><div class="nm">'+D.name+'</div><div class="foot"><p>'+D.role+' / '+D.tag+'</p><span class="arrow">↗</span></div><span class="stripe"></span>';
+  b.addEventListener('click',function(){selectAgent(id);location.hash='#desk'});crewCanv.push({c:b.querySelector('canvas'),id:id,ph:i*1.3});g.appendChild(b)})})();
+$$('#filters .pill').forEach(function(p){p.addEventListener('click',function(){var f=p.getAttribute('data-f');$$('#filters .pill').forEach(function(x){x.classList.toggle('on',x===p)});var n=0;$$('.cc').forEach(function(c){var show=f==='all'||c.getAttribute('data-cat')===f;c.style.display=show?'':'none';if(show)n++});$('#count').textContent='SHOWING 0'+n+' / 06'})});
+function crewTick(t){crewCanv.forEach(function(o){var x=o.c.getContext('2d');x.clearRect(0,0,340,340);x.imageSmoothingEnabled=false;var bl=((t/1000+o.ph)%4)<0.15?1:0;drawCritter(x,o.id,22,24+Math.sin(t*0.002+o.ph)*5,12.4,{look:mouse,blink:bl,depth:0.4})})}
+
+/* ================= AGENT DESK ================= */
+var cur='nibs',concept='';
+var W1=['Snack','Crumb','Nibble','Munch','Seed','Chomp','Pouch','Squeak','Hop','Acorn','Whisker','Burrow','Cheek','Crunch','Snout','Paw'];
+var W2=['Overflow','Lord','Club','Gang','Cartel','Society','Pad','Coin','Labs','Mafia','Inu','Stash','Hours','Season','Protocol','Party'];
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function topic(){return concept||pick(['sunflower seeds','midnight snacks','tiny chaos','cheek pouches','hamster wheels'])}
+var TOOLS={
+  names:function(){var t=topic(),base=t.split(/\s+/)[0];var out=[];for(var i=0;i<5;i++){var n=i<2&&base?cap(base.replace(/[^a-z0-9]/gi,'').slice(0,10))+' '+pick(W2):pick(W1)+' '+pick(W2);var tk=n.replace(/[^A-Za-z]/g,'').toUpperCase().slice(0,pick([4,5,6]));out.push((i+1)+'. '+n+'  →  $'+tk)}return 'Five names nibbled from "'+t+'":\n\n'+out.join('\n')+'\n\nTip: say each out loud. If it doesn\'t sound fun in a voice note, toss it back in the pouch.'},
+  hook:function(){var t=topic();return pick(['"POV: '+t+' just got a cheek pouch full of conviction."','"Everyone wanted the next big thing. We stashed '+t+' instead."','"Small paws. Big '+t+' energy."','"Not financial advice, just '+t+' and good vibes."','"The '+t+' was hiding in the burrow the whole time."'])+'\n\nAlt hooks:\n· "'+cap(t)+', but make it snack-sized."\n· "Crunch first, ask questions later."'},
+  lore:function(){var t=topic();return 'Lore draft for "'+t+'":\n\nDeep under the timeline lives a burrow where '+t+' is the only currency. Every night a tiny agent slips out, nibbles one good idea, and carries it home in its cheeks. The burrow grows one crumb at a time, and nobody remembers who dug the first tunnel. They only remember the crunch.\n\n(Edit freely. Original lore beats copied lore every time.)'},
+  tweet:function(){var t=topic();return 'Post draft:\n\n'+pick(['gm burrow 🐹','new snack just dropped','tiny paws, big plans'])+'\n\n'+cap(t)+' is the vibe today. Who\'s nibbling?\n\n$NIBBLE'},
+  welcome:function(){return 'Welcome message:\n\n"Welcome to the burrow! 🐹 Grab a seed, read the pinned post, and say hi. We nibble ideas here, we don\'t chase them. Official links only come from our X."'},
+  replies:function(){return 'Reply ideas (keep them kind):\n· "this is the kind of snack the timeline needed"\n· "cheeks full, heart fuller"\n· "certified crunchy 🥜"\n· "the burrow approves"'},
+  plan:function(){return 'Launch day plan:\n\nT-3 days · lock name, ticker, art, story\nT-2 · post 2 teasers (no CA yet)\nT-1 · pin the "how to find us" post\nT-0 · launch, post the CA from the official X only\nT+1h · thank-you post + art drop\nT+1d · recap thread with real links only'},
+  schedule:function(){return 'Posting rhythm:\n· 1 meme / day\n· 1 community shout / day\n· 1 build update / 2 days\n· Never post a CA from anywhere but the official account.'},
+  read:function(){return 'Reading a pair like a mouse:\n· Liquidity: how deep the pool is. Thin pools move fast both ways.\n· 24h volume: activity, not value.\n· Buys vs sells: a mood ring, not a forecast.\n· Pair age: brand-new pairs are the wildest.\nUse Market Watch below to look up any public pair.'},
+  flags:function(){return 'Red flags to sniff out:\n· CA posted by an account that isn\'t official\n· "Guaranteed" anything\n· Liquidity tiny next to market cap\n· Copycat names of bigger coins\n· Pressure to connect a wallet to unknown sites'},
+  palette:function(){var pal=[];var hue=Math.floor(Math.random()*360);for(var i=0;i<5;i++){pal.push(hsl((hue+i*pick([28,36,72,144]))%360,pick([70,78,85]),pick([52,60,68,74])))}return {html:'Fresh palette for "'+esc(topic())+'":\n\n<span class="sw">'+pal.map(function(c){return '<i style="background:'+c+'"></i>'}).join('')+'</span>\n'+pal.join('  ')+'\n\nUse the darkest for text, the loudest for the ticker.'}},
+  logo:function(){var t=topic();return 'Logo brief:\n· A '+pick(['chubby','tiny','determined','sleepy'])+' '+pick(['hamster','raccoon','squirrel','bunny'])+' holding '+pick(['a seed','a tiny flag','a crayon','a coin'])+'\n· Flat colors, thick outline, readable at 48px\n· Theme: '+t+'\n· Background: one solid color so it pops in a circle crop'},
+  banner:function(){return 'Banner copy:\n"'+cap(topic())+'. One nibble at a time." \nKeep text top-left so your profile picture doesn\'t cover it.'},
+  check:function(){return 'Pre-launch checklist:\n☐ Name + ticker final (ticker ≤ 10 letters)\n☐ Story is original, under 280 chars\n☐ Image is square, readable small\n☐ X account live with banner + bio\n☐ Official links pinned\n☐ Draft saved + kit downloaded\n☐ You review and sign the mint yourself on Pump.fun'},
+  ticker:function(){var raw=(concept||'').replace(/^\$/,'');if(!raw)return 'Type a ticker in the box (like $SNACK) and ask me to check it.';var t=raw.toUpperCase();var issues=[];if(t.length>10)issues.push('longer than 10 letters');if(/[^A-Z0-9]/.test(t))issues.push('has symbols or spaces');if(t.length<3)issues.push('very short, may clash');return issues.length?'$'+t+': '+issues.join(', ')+'. Try trimming it.':'$'+t+' looks clean: '+t.length+' letters, easy to type. ✓'},
+  scan:function(){var s=$('#lStory').value||concept;if(!s)return 'Write a story in the Launch Pad (or paste it here) and I\'ll scan it.';var bad=['guarantee','guaranteed','100x','risk-free','profit','returns','official partner','endorsed'];var hit=bad.filter(function(w){return s.toLowerCase().indexOf(w)>=0});return 'Story scan · '+s.length+'/280 chars\n'+(hit.length?'⚠ Words to cut: '+hit.join(', ')+'. Promises like these get coins (and people) in trouble.':'✓ No promise-words found. Keep it fun and honest.')}
+};
+function hsl(h,s,l){l/=100;var a=s*Math.min(l,1-l)/100;function f(n){var k=(n+h/30)%12;var c=l-a*Math.max(Math.min(k-3,9-k,1),-1);return Math.round(255*c).toString(16).padStart(2,'0')}return '#'+f(0)+f(8)+f(4)}
+var CHIPS={nibs:[['Name a hamster coin','names'],['Give me a meme hook','hook'],['Write token lore','lore']],
+  thump:[['Write a post','tweet'],['Welcome message','welcome'],['Friendly replies','replies']],
+  acorn:[['Launch day plan','plan'],['Posting rhythm','schedule'],['Name ideas','names']],
+  squeak:[['How to read a pair','read'],['Red flags','flags'],['Search $NIBBLE','search']],
+  bandit:[['Color palette','palette'],['Logo brief','logo'],['Banner copy','banner']],
+  gnaw:[['Pre-launch checklist','check'],['Check my ticker','ticker'],['Scan my story','scan']]};
+var GREET={nibs:'Squeak! I\'m Nibs, your meme scout. Give me a concept and I\'ll nibble out names, hooks and lore.',thump:'Hop hop. I\'m Thump, the community bard. Tell me the vibe and I\'ll write posts and welcomes.',acorn:'I\'m Acorn. I stash plans like nuts. Ask me for a launch day plan.',squeak:'Squeak here. I watch public data only. Ask how to read a pair, or I\'ll search Market Watch for you.',bandit:'Bandit, brand architect. Give me a theme and I\'ll steal you a palette (legally).',gnaw:'Gnaw. I chew through details. Paste a ticker or story and I\'ll check it.'};
+var logs={};
+(function(){var o=$('#ops');CRK.forEach(function(id){var D=CR[id];var b=document.createElement('button');b.type='button';b.className='op';b.setAttribute('data-id',id);b.style.setProperty('--a',D.a);var c=document.createElement('canvas');c.width=48;c.height=48;c.className='px';paintIcon(c,id,1);b.appendChild(c);var t=document.createElement('div');t.innerHTML='<b>'+D.name+'</b><small>'+D.role+'</small>';b.appendChild(t);b.addEventListener('click',function(){selectAgent(id)});o.appendChild(b)})})();
+function selectAgent(id){cur=id;var D=CR[id];$$('.op').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-id')===id)});
+  $('.desk').style.setProperty('--a',D.a);$('#specNo').textContent='SPECIMEN / 0'+(CRK.indexOf(id)+1);$('#specNm').textContent=D.name;$('#specRole').textContent=D.role;$('#specTg').innerHTML='● ANIMATED + INTERACTIVE<br>'+D.label;$('#deskTitle').textContent=cap(D.name.toLowerCase())+'\'s desk ↗';
+  $('#chips').innerHTML='';CHIPS[id].forEach(function(c){var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=c[0];b.addEventListener('click',function(){userSay(c[0]);run(c[1])});$('#chips').appendChild(b)});
+  if(!logs[id]){logs[id]=[];addMsg(id,'bot',GREET[id])}renderLog()}
+function addMsg(id,who,text,html){logs[id].push({who:who,text:text,html:html});if(logs[id].length>30)logs[id].shift()}
+function renderLog(){var L=$('#log');L.innerHTML='';logs[cur].forEach(function(m){var d=document.createElement('div');d.className='msg'+(m.who==='me'?' me':'');d.innerHTML='<div class="who">'+(m.who==='me'?'YOU':CR[cur].name)+'</div><div class="bx">'+(m.html||esc(m.text))+'</div>';L.appendChild(d)});L.scrollTop=L.scrollHeight}
+function userSay(t){addMsg(cur,'me',t);renderLog()}
+function botSay(r){var id=cur;var text=typeof r==='string'?r:'',html=typeof r==='object'?r.html:null;var m={who:'bot',text:'',html:null};logs[id].push(m);var i=0;var full=text;
+  if(html){m.html=html;renderLog();return}
+  var iv=setInterval(function(){i+=Math.max(2,Math.round(full.length/60));m.text=full.slice(0,i);if(cur===id)renderLog();if(i>=full.length)clearInterval(iv)},18)}
+function run(tool){if(tool==='search'){botSay('Sniffing Market Watch for '+(CONFIG.mint?'$NIBBLE':'"nibble"')+'… scroll down ↓');$('#mQ').value=CONFIG.mint||'nibble';doSearch();setTimeout(function(){location.hash='#market'},700);return}
+  setTimeout(function(){botSay(TOOLS[tool]())},380)}
+$('#askF').addEventListener('submit',function(e){e.preventDefault();var v=$('#askIn').value.trim();if(!v)return;$('#askIn').value='';userSay(v);
+  var l=v.toLowerCase();var tool=null;
+  if(/name|call it|title/.test(l))tool='names';else if(/hook|tagline|slogan/.test(l))tool='hook';else if(/lore|story|backstory/.test(l))tool=cur==='gnaw'?'scan':'lore';else if(/tweet|post|thread/.test(l))tool='tweet';else if(/welcome/.test(l))tool='welcome';else if(/plan|launch day|timeline/.test(l))tool='plan';else if(/palette|color|colour/.test(l))tool='palette';else if(/logo|pfp/.test(l))tool='logo';else if(/banner/.test(l))tool='banner';else if(/check|list/.test(l))tool='check';else if(/flag|scam|rug/.test(l))tool='flags';else if(/chart|liquidity|volume|read/.test(l))tool='read';else if(/^\$?[a-z0-9]{2,12}$/i.test(v)&&cur==='gnaw')tool='ticker';
+  concept=v.replace(/^(name|give|write|make|a|an|the|me|for|about|coin|token)\s+/gi,'').slice(0,40);
+  if(!tool)tool=CHIPS[cur][0][1];if(tool==='search')tool='read';run(tool)});
+var specC=$('#specC'),spx=specC.getContext('2d'),sNib=0;specC.addEventListener('click',function(){sNib=1});
+function specTick(t){var W=specC.width,H=specC.height;spx.clearRect(0,0,W,H);spx.imageSmoothingEnabled=false;spx.strokeStyle='rgba(255,255,255,.12)';spx.setLineDash([4,6]);spx.beginPath();spx.ellipse(W/2,H/2,W*0.36,H*0.44,0,0,Math.PI*2);spx.stroke();spx.setLineDash([]);
+  sNib*=0.9;var s=17;var bl=((t/1000)%3.6)<0.14?1:0;drawCritter(spx,cur,W/2-12*s,H/2-12.5*s,s,{look:mouse,blink:bl,bob:Math.sin(t*0.0024)*5,squash:Math.sin(sNib*Math.PI)*sNib,depth:0.4})}
+
+/* ================= LAUNCH PAD ================= */
+var L={tpl:'nibs',img:null};
+(function(){var tp=$('#tpls');CRK.forEach(function(id){var D=CR[id];var b=document.createElement('button');b.type='button';b.className='tpl';b.setAttribute('data-id',id);b.style.setProperty('--t',D.t);b.style.setProperty('--a',D.a);var c=document.createElement('canvas');c.width=48;c.height=48;c.className='px';paintIcon(c,id,1);b.appendChild(c);var s=document.createElement('span');s.textContent=D.kind.toUpperCase()+' / '+D.name;b.appendChild(s);b.addEventListener('click',function(){L.tpl=id;updPrev()});tp.appendChild(b)})})();
+function cleanTick(v){v=v.replace(/[^a-z0-9$]/gi,'').toUpperCase();v=v.replace(/\$/g,'');return v?'$'+v.slice(0,9):''}
+$('#lTick').addEventListener('input',function(){this.value=cleanTick(this.value);updPrev()});
+['#lName','#lStory','#lX'].forEach(function(s){$(s).addEventListener('input',updPrev)});
+$('#lImg').addEventListener('change',function(){var f=this.files&&this.files[0];if(!f)return;if(f.size>5e6){toast('That image is over 5MB. Try a smaller one.');return}var r=new FileReader();r.onload=function(){L.img=r.result;updPrev()};r.readAsDataURL(f)});
+function updPrev(){var D=CR[L.tpl];$$('.tpl').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-id')===L.tpl)});$('#prev').style.setProperty('--t',D.t);
+  $('#pName').textContent=$('#lName').value||'Your token name';$('#pTick').textContent=($('#lTick').value||'$TICKER')+' · '+D.kind.toUpperCase()+' AGENT';$('#pStory').textContent=$('#lStory').value||'Your story will appear here as you type.';$('#lCnt').textContent=$('#lStory').value.length;
+  var im=$('#prevIm');im.innerHTML='';if(L.img){var i=document.createElement('img');i.src=L.img;i.alt='Token image';im.appendChild(i)}else{var c=document.createElement('canvas');c.width=168;c.height=168;c.className='px';var x=c.getContext('2d');x.imageSmoothingEnabled=false;drawCritter(x,L.tpl,0,0,7,{depth:0.35});im.appendChild(c)}}
+function draft(){return {template:L.tpl,critter:CR[L.tpl].kind,name:$('#lName').value.trim(),ticker:$('#lTick').value.trim(),story:$('#lStory').value.trim(),x:$('#lX').value.trim(),savedAt:new Date().toISOString()}}
+function valid(){var d=draft(),m=[];if(!d.name)m.push('name');if(!d.ticker||d.ticker.length<2)m.push('ticker');if(!d.story)m.push('story');if(m.length){$('#lMsg').innerHTML='<span class="err">Add a '+m.join(', ')+' first.</span>';return null}return d}
+$('#saveD').addEventListener('click',function(){var d=draft();store('draft',JSON.stringify(d));toast('Draft saved in this browser.')});
+try{var sd=JSON.parse(store('draft')||'null');if(sd){$('#lName').value=sd.name||'';$('#lTick').value=sd.ticker||'';$('#lStory').value=sd.story||'';$('#lX').value=sd.x||'';if(CR[sd.template])L.tpl=sd.template}}catch(e){}
+function dl(blob,name){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},600)}
+$('#dlKit').addEventListener('click',function(){var d=valid();if(!d)return;var base=d.ticker.replace('$','').toLowerCase()||'launch';
+  dl(new Blob([JSON.stringify({name:d.name,symbol:d.ticker.replace('$',''),description:d.story,twitter:d.x,template:d.critter+' agent',preparedWith:'NibblePad Agent',note:'Metadata only. Mint on Pump.fun yourself.'},null,2)],{type:'application/json'}),base+'-launch-kit.json');
+  var c=document.createElement('canvas');c.width=1200;c.height=630;var x=c.getContext('2d');x.imageSmoothingEnabled=false;var D=CR[d.template];
+  x.fillStyle='#ebe9e4';x.fillRect(0,0,1200,630);x.fillStyle=getComputedStyle(document.documentElement).getPropertyValue(D.t.slice(4,-1)).trim()||'#f3e6b8';x.fillRect(40,40,520,550);x.strokeStyle='#0c0c0d';x.lineWidth=3;x.strokeRect(40,40,520,550);
+  function after(){x.fillStyle='#0c0c0d';x.font='700 64px "Space Grotesk",Arial,sans-serif';var nm=d.name;while(x.measureText(nm).width>560&&nm.length>3)nm=nm.slice(0,-1);x.fillText(nm,600,170);x.fillStyle=D.a;x.font='700 40px "IBM Plex Mono",monospace';x.fillText(d.ticker+' · '+D.kind.toUpperCase()+' AGENT',600,230);
+    x.fillStyle='#333';x.font='24px "IBM Plex Mono",monospace';var words=d.story.split(' '),line='',y=300;words.forEach(function(w){if(x.measureText(line+w).width>540){x.fillText(line,600,y);line='';y+=34}line+=w+' '});if(y<520)x.fillText(line,600,y);
+    x.fillStyle='#0c0c0d';x.font='600 18px "IBM Plex Mono",monospace';x.fillText('prepared with NibblePad Agent · $NIBBLE',600,580);
+    c.toBlob(function(b){dl(b,base+'-launch-card.png')},'image/png');$('#lMsg').textContent='Kit downloaded: metadata JSON + a 1200×630 launch card.'}
+  if(L.img){var im=new Image();im.onload=function(){var s=Math.min(440/im.width,440/im.height);x.drawImage(im,300-im.width*s/2,315-im.height*s/2,im.width*s,im.height*s);after()};im.src=L.img}else{drawCritter(x,d.template,300-12*19,315-12*19,19,{depth:0.4});after()}});
+$('#toPump').addEventListener('click',function(){var d=valid();if(!d)return;store('draft',JSON.stringify(d));window.open(CONFIG.pumpUrl,'_blank','noopener');$('#lMsg').textContent='Opened Pump.fun in a new tab. Your draft is saved here so you can copy the details across.'});
+$('#phantom').addEventListener('click',function(){var p=window.phantom&&window.phantom.solana;if(!p||!p.isPhantom){toast('Phantom not found. Install it from phantom.app first.');return}Promise.resolve(p.connect()).then(function(r){var a=((r&&r.publicKey)||p.publicKey).toString();$('#phantom').textContent='✓ '+a.slice(0,4)+'…'+a.slice(-4);toast('Connected read-only. Nothing is signed here.')}).catch(function(){toast('Phantom request closed.')})});
+updPrev();
+
+/* ================= MARKET WATCH ================= */
+(function(){var q=$('#qq');var list=(CONFIG.mint?[['$NIBBLE',CONFIG.mint]]:[]).concat([['SOL','SOL'],['BONK','BONK'],['WIF','WIF'],['hamster','hamster'],['squirrel','squirrel']]);list.forEach(function(l,i){var b=document.createElement('button');b.type='button';b.className='pill';b.textContent=l[0];b.style.borderColor=['#ff5d8f','#ffb020','#3fb8ff','#8b5cf6','#2fcf7f','#ff7a3d'][i%6];b.addEventListener('click',function(){$('#mQ').value=l[1];doSearch()});q.appendChild(b)})})();
+function money(n){n=+n||0;return n>=1e9?'$'+(n/1e9).toFixed(2)+'B':n>=1e6?'$'+(n/1e6).toFixed(2)+'M':n>=1e3?'$'+(n/1e3).toFixed(1)+'K':'$'+n.toFixed(2)}
+function price(n){n=+n||0;return n>=1?'$'+n.toFixed(3):n>=0.01?'$'+n.toFixed(4):'$'+n.toPrecision(3)}
+function doSearch(){var q=$('#mQ').value.trim();if(!q)return;$('#mState').textContent='LOADING…';
+  var url=/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(q)?'https://api.dexscreener.com/latest/dex/tokens/'+q:'https://api.dexscreener.com/latest/dex/search?q='+encodeURIComponent(q);
+  fetch(url).then(function(r){return r.json()}).then(function(j){var ps=(j.pairs||[]).filter(function(p){return p.chainId==='solana'}).sort(function(a,b){return((b.liquidity||{}).usd||0)-((a.liquidity||{}).usd||0)}).slice(0,8);
+    if(!ps.length){$('#mOut').innerHTML='<div class="empty"><b>No Solana pairs found.</b><span>Try another name, ticker or a mint address.</span></div>';$('#mState').textContent='0 RESULTS';return}
+    $('#mState').textContent=ps.length+' SOLANA PAIRS · LIVE';
+    $('#mOut').innerHTML='<div class="rows">'+ps.map(function(p,i){var ch=(p.priceChange||{}).h24;var img=p.info&&p.info.imageUrl;var cols=['var(--butter)','var(--pink)','var(--sky)','var(--lilac)','var(--mint)','var(--peach)'];
+      return '<div class="pr" style="--t:'+cols[i%6]+'"><div class="tkn">'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy">':'<span class="ph2"></span>')+'<div style="min-width:0"><b>'+esc(p.baseToken.symbol)+'</b><small>'+esc(p.baseToken.name)+' / '+esc(p.quoteToken.symbol)+' · '+esc(p.dexId)+'</small></div></div>'+
+      '<div><span class="k">PRICE</span>'+price(p.priceUsd)+'</div><div><span class="k">24H</span><span class="'+(ch>=0?'up':'dn')+'">'+(ch==null?'—':(ch>=0?'+':'')+(+ch).toFixed(2)+'%')+'</span></div>'+
+      '<div><span class="k">LIQUIDITY</span>'+money((p.liquidity||{}).usd)+'</div><div><span class="k">VOL 24H</span>'+money((p.volume||{}).h24)+'</div><a class="go" href="'+esc(p.url)+'" target="_blank" rel="noopener noreferrer">Chart ↗</a></div>'}).join('')+'</div>'})
+  .catch(function(){$('#mState').textContent='OFFLINE';$('#mOut').innerHTML='<div class="empty"><b>Couldn\'t reach DEX Screener.</b><span>Check your connection and try again. We never fill in made-up numbers.</span></div>'})}
+$('#mF').addEventListener('submit',function(e){e.preventDefault();doSearch()});
+
+/* ================= HOW cards anim + misc ================= */
+var hcs=$$('.hc canvas');function howTick(t){hcs.forEach(function(c,i){var x=c.getContext('2d');x.clearRect(0,0,24,24);x.imageSmoothingEnabled=false;drawCritter(x,c.getAttribute('data-crit'),0,Math.round(Math.sin(t*0.003+i)*0.6)-0.5,1,{depth:0,blink:((t/1000+i)%3.5)<0.15?1:0})})}
+function wireX(a){if(CONFIG.xUrl){a.href=CONFIG.xUrl}else{a.removeAttribute('target');a.addEventListener('click',function(e){e.preventDefault();toast('Our X link drops here soon. $NIBBLE news lands there first.')})}}
+['#xNav','#xHero','#xFoot'].forEach(function(s){wireX($(s))});
+$('#burger').addEventListener('click',function(){$('#links').classList.toggle('open')});$$('#links a').forEach(function(a){a.addEventListener('click',function(){$('#links').classList.remove('open')})});
+var vis={};
+if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)e.target.classList.add('in')})},{threshold:.1});$$('.rv').forEach(function(el){io.observe(el)});
+  var io2=new IntersectionObserver(function(es){es.forEach(function(e){vis[e.target.id]=e.isIntersecting})},{rootMargin:'100px'});['heroC','crewGrid','specC','how'].forEach(function(id){io2.observe(document.getElementById(id))})}
+else{$$('.rv').forEach(function(el){el.classList.add('in')});vis={heroC:1,crewGrid:1,specC:1,how:1}}
+function frame(t){drawTitle(t);if(vis.heroC!==false)heroTick(t);if(vis.crewGrid)crewTick(t);if(vis.specC)specTick(t);if(vis.how)howTick(t);
+  if(Math.floor(t/100)!==frame.k){frame.k=Math.floor(t/100);$$('canvas[data-face]').forEach(function(c,i){var x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);x.imageSmoothingEnabled=false;var s=c.width/24*1.5;drawCritter(x,c.getAttribute('data-crit'),c.width/2-12*s,-1.5*s,s,{depth:0,look:mouse,blink:((t/1000+i)%4)<0.15?1:0})})}
+  requestAnimationFrame(frame)}
+selectAgent('nibs');
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
